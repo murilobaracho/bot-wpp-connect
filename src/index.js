@@ -2,12 +2,13 @@ const wppconnect = require('@wppconnect-team/wppconnect');
 const fs = require('fs');
 const path = require('path');
 
-const mensagem = fs.readFileSync('mensagem.txt', 'utf8');
+const ROOT_DIR = path.resolve(__dirname, '..');
+const mensagem = fs.readFileSync(path.join(ROOT_DIR, 'data', 'mensagemCampanha.txt'), 'utf8');
 
 const COOLDOWN = 10 * 60 * 1000;
 const respondidos = {};
 
-const chromeData = path.resolve(__dirname, 'chrome-data');
+const chromeData = path.resolve(ROOT_DIR, 'chrome-data');
 
 wppconnect.create({
 
@@ -79,4 +80,4 @@ function start(client) {
 
   });
 
-}c
+}

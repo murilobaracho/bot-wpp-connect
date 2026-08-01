@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Controle - Barbearia Bot</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f6f9; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1 { margin-top: 0; color: #1e293b; text-align: center; }
+        .status-card { background: #e2e8f0; padding: 15px; border-radius: 6px; margin-bottom: 20px; font-weight: bold; }
+        .section { margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
+        label { font-weight: bold; display: block; margin-bottom: 8px; }
+        textarea { width: 100%; height: 90px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-family: inherit; }
+        button { background: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 14px; margin-top: 8px; }
+        button:hover { background: #1d4ed8; }
+        button.btn-success { background: #16a34a; }
+        button.btn-success:hover { background: #15803d; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>✂️ Painel Barbearia Bot</h1>
+
+    <div class="status-card">
+        Status do WhatsApp: <span id="botStatus" style="color: #dc2626;">Desconectado</span>
+    </div>
+
+    <div class="section">
+        <h2>1. Conexão do WhatsApp</h2>
+        <button id="btnLigarBot" onclick="ligarBot()">🔌 Conectar WhatsApp / Iniciar Bot</button>
+    </div>
+
+    <div class="section">
+        <h2>2. Configurar Mensagens</h2>
+        
+        <label for="msgBot">Mensagem de Resposta Automática (mensagem.txt):</label>
+        <textarea id="msgBot"></textarea>
+        <button onclick="salvarMensagem('bot')">💾 Salvar Resposta Automática</button>
+
+        <br><br>
+
+        <label for="msgCampanha">Mensagem da Campanha (mensagemCampanha.txt):</label>
+        <textarea id="msgCampanha"></textarea>
+        <button onclick="salvarMensagem('campanha')">💾 Salvar Mensagem da Campanha</button>
+    </div>
+
+    <div class="section">
+        <h2>3. Disparar Campanha em Massa</h2>
+        <p>A mensagem configurada acima será disparada para a lista do <code>clientes.csv</code>.</p>
+        <button class="btn-success" id="btnCampanha" onclick="iniciarCampanha()">🚀 Iniciar Disparos da Campanha</button>
+    </div>
+</div>
+
+<script>
+    let digitando = false;
+
+    // Evita sobrescrever o que a pessoa está digitando no campo de texto
+    document.getElementById('msgBot').addEventListener('focus', () => digitando = true);
+    document.getElementById('msgBot').addEventListener('blur', () => digitando = false);
+    document.getElementById('msgCampanha').addEventListener('focus', () => digitando = true);
+    document.getElementById('msgCampanha').addEventListener('blur', () => digitando = false);
+
+    async function carregarDados() {
+        try {
+            const res = await fetch('/api/dados');
+            const data = await res.json();
+            
+            if (!digitando) {
+                document.getElementById('msgBot').value = data.msgBot;
+                document.getElementById('msgCampanha').value = data.msgCampanha;
+            }
+            
+            const statusElem = document.getElementById('botStatus');
+            statusElem.innerText = data.statusTexto;
+
+            if (data.botConectado) {
+                statusElem.style.color = "#16a34a";
+            } else {
+                statusElem.style.color = "#dc2626";
+            }
+
+            if (data.campanhaRodando) {
+                statusElem.innerText += " (🚀 Campanha em andamento...)";
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    async function ligarBot() {
+        const res = await fetch('/api/bot/iniciar', { method: 'POST' });
+        const data = await res.json();
+        alert(data.mensagem);
+        carregarDados();
+    }
+
+    async function salvarMensagem(tipo) {
+        const texto = tipo === 'bot' 
+            ? document.getElementById('msgBot').value 
+            : document.getElementById('msgCampanha').value;
+
+        const res = await fetch('/api/mensagem/salvar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tipo, texto })
+        });
+        const data = await res.json();
+        alert(data.mensagem);
+    }
+
+    async function iniciarCampanha() {
+        if(!confirm("Deseja realmente iniciar os disparos para a lista do CSV?")) return;
+        
+        const res = await fetch('/api/campanha/iniciar', { method: 'POST' });
+        const data = await res.json();
+        alert(data.mensagem);
+    }
+
+    // Carrega na abertura e atualiza o status a cada 3 segundos
+    carregarDados();
+    setInterval(carregarDados, 3000);
+</script>
+
+</body>
+</html>
