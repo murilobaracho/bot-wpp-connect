@@ -1,4 +1,6 @@
 let digitando = false;
+let conectando = false;
+let avisoPausaMostrado = false;
 
 function toast(mensagem, tipo = 'success') {
     const container = document.getElementById('toastContainer');
@@ -35,9 +37,20 @@ async function carregarDados() {
         if (data.campanhaRodando) {
             texto += ' (🚀 Campanha em andamento...)';
         }
+        if (data.respostaAutomaticaPausada) {
+            texto += ' ⚠️ Resposta automática pausada por segurança!';
+            if (!avisoPausaMostrado) {
+                avisoPausaMostrado = true;
+                toast('Resposta automática pausada: volume anormal de envios detectado. Reinicie o bot depois de investigar.', 'error');
+            }
+        }
         statusElem.innerText = texto;
 
         statusDot.classList.toggle('online', !!data.botConectado);
+
+        if (data.botConectado) {
+            conectando = false;
+        }
 
         if (data.campanhaRodando) {
             mostrarProgressoCampanha();
@@ -58,9 +71,14 @@ async function carregarDados() {
 }
 
 async function ligarBot() {
-    const res = await fetch('/api/bot/iniciar', { method: 'POST' });
-    const data = await res.json();
-    alert(data.mensagem);
+    conectando = true;
+    try {
+        const res = await fetch('/api/bot/iniciar', { method: 'POST' });
+        const data = await res.json();
+        toast(data.mensagem, res.ok ? 'success' : 'error');
+    } catch (e) {
+        toast('Erro de conexão ao iniciar o bot.', 'error');
+    }
     carregarDados();
 }
 
@@ -89,6 +107,8 @@ async function salvarMensagem(tipo) {
 
 async function encerrarBot() {
     if (!confirm('Deseja realmente encerrar o bot?')) return;
+
+    conectando = false;
 
     try {
         const res = await fetch('/api/bot/encerrar', { method: 'POST' });
@@ -184,5 +204,14 @@ async function atualizarProgressoCampanha() {
     }
 }
 
+// Enquanto conecta, consulta bem mais rápido: as mensagens de status (QR lido,
+// sincronizando, quase lá...) mudam rápido e passam despercebidas com 3s de intervalo.
+function agendarProximaConsulta() {
+    setTimeout(async () => {
+        await carregarDados();
+        agendarProximaConsulta();
+    }, conectando ? 1000 : 3000);
+}
+
 carregarDados();
-setInterval(carregarDados, 3000);
+agendarProximaConsulta();
