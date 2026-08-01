@@ -1,6 +1,7 @@
 node_modules/
 chrome-data/
 tokens/
+data/clientes.csv
 data/clientes.csv.old
 data/enviados.txt
 data/erros.txt
