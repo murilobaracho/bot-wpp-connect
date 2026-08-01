@@ -11,9 +11,10 @@ const DATA_DIR = path.join(ROOT_DIR, 'data');
 const TOKENS_DIR = path.join(ROOT_DIR, 'tokens');
 const MENSAGEM_PATH = path.join(DATA_DIR, 'mensagem.txt');
 const MENSAGEM_CAMPANHA_PATH = path.join(DATA_DIR, 'mensagemCampanha.txt');
+const CLIENTES_PATH = path.join(DATA_DIR, 'clientes.csv');
 
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: '5mb' }));
 app.use(express.static(PUBLIC_DIR));
 
 const COOLDOWN = 10 * 60 * 1000;
@@ -97,6 +98,35 @@ app.post('/api/bot/iniciar', (req, res) => {
     res.json({ mensagem: 'Iniciando o WhatsApp... Verifique o navegador/terminal.' });
 });
 
+// Encerra a conexão do WhatsApp
+app.post('/api/bot/encerrar', async (req, res) => {
+    if (!clientInstance) {
+        return res.json({ mensagem: 'O WhatsApp já está desconectado!' });
+    }
+
+    try {
+        await clientInstance.close();
+    } catch (e) {
+        console.log('Erro ao encerrar:', e);
+    }
+
+    clientInstance = null;
+    statusTexto = 'Desconectado';
+    res.json({ mensagem: 'WhatsApp desconectado!' });
+});
+
+// Substitui a lista de clientes usada na campanha
+app.post('/api/clientes/importar', (req, res) => {
+    const { conteudo } = req.body;
+
+    if (!conteudo || !conteudo.trim()) {
+        return res.status(400).json({ mensagem: 'Arquivo vazio ou inválido!' });
+    }
+
+    fs.writeFileSync(CLIENTES_PATH, conteudo, 'utf8');
+    res.json({ mensagem: 'Lista de contatos atualizada com sucesso!' });
+});
+
 // Dispara a campanha SOMENTE quando acionado pelo painel
 app.post('/api/campanha/iniciar', async (req, res) => {
     if (!clientInstance) {
@@ -116,7 +146,10 @@ app.post('/api/campanha/iniciar', async (req, res) => {
 
 function ativarRespostasAutomaticas(client) {
     client.onMessage(async (message) => {
-        if (!message.from || !message.from.endsWith("@c.us") || message.isGroupMsg || message.fromMe) return;
+        if (!message.from || message.isGroupMsg || message.fromMe) return;
+
+        // Contatos podem chegar como @c.us (número) ou @lid (id vinculado/privacidade)
+        if (!message.from.endsWith("@c.us") && !message.from.endsWith("@lid")) return;
 
         const contato = message.from;
         const agora = Date.now();

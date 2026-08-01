@@ -23,12 +23,18 @@
         <div class="status-pill" id="statusPill">
             <span class="status-dot" id="statusDot"></span>
             <span id="botStatus">Verificando...</span>
+            <button id="btnEncerrarBot" class="btn-icon" onclick="encerrarBot()" title="Encerrar bot">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2v10"></path>
+                    <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
+                </svg>
+            </button>
         </div>
     </header>
 
     <main class="grid">
 
-        <section class="card">
+        <section class="card card-wide">
             <div class="card-header">
                 <span class="card-icon">🔌</span>
                 <div>
@@ -37,7 +43,7 @@
                 </div>
             </div>
             <button id="btnLigarBot" class="btn btn-primary" onclick="ligarBot()">
-                Conectar WhatsApp
+                Conectar WhatsApp / Iniciar Bot
             </button>
         </section>
 
@@ -76,6 +82,21 @@
             </button>
         </section>
 
+        <section class="card card-wide">
+            <div class="card-header">
+                <span class="card-icon">📇</span>
+                <div>
+                    <h2>Lista de contatos</h2>
+                    <p class="card-desc">Importe um novo <code>clientes.csv</code> para substituir a lista usada na campanha.</p>
+                </div>
+            </div>
+            <input type="file" id="inputCsv" accept=".csv" hidden>
+            <button class="btn btn-secondary" onclick="document.getElementById('inputCsv').click()">
+                Importar arquivo CSV
+            </button>
+            <span class="file-name" id="csvFileName"></span>
+        </section>
+
     </main>
 
     <footer class="footer">
@@ -83,6 +104,8 @@
     </footer>
 
 </div>
+
+<div class="toast-container" id="toastContainer"></div>
 
 <script src="js/app.js"></script>
 </body>

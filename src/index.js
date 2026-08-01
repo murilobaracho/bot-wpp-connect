@@ -48,8 +48,8 @@ function start(client) {
 
     if (!message.from) return;
 
-    // IGNORA STATUS
-    if (!message.from.endsWith("@c.us")) return;
+    // ACEITA CONTATOS DIRETOS: número (@c.us) ou id vinculado/privacidade (@lid)
+    if (!message.from.endsWith("@c.us") && !message.from.endsWith("@lid")) return;
 
     // IGNORA GRUPOS
     if (message.isGroupMsg) return;
