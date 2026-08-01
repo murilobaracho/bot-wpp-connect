@@ -28,6 +28,18 @@ function tempoPausaGrande() {
     return random(180000, 420000); // 3 a 7 minutos
 }
 
+let progresso = {
+    rodando: false,
+    total: 0,
+    enviados: 0,
+    erros: 0,
+    atual: null
+};
+
+function getProgresso() {
+    return progresso;
+}
+
 function embaralhar(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -55,6 +67,8 @@ async function dispararCampanha(client) {
     const mensagem = fs.readFileSync(MENSAGEM_CAMPANHA_PATH, 'utf8');
     const clientes = [];
 
+    progresso = { rodando: true, total: 0, enviados: 0, erros: 0, atual: null };
+
     console.log("📥 Carregando clientes do CSV...");
 
     return new Promise((resolve) => {
@@ -70,13 +84,13 @@ async function dispararCampanha(client) {
             .on('end', async () => {
                 if (clientes.length === 0) {
                     console.log("❌ Nenhum cliente encontrado no CSV.");
+                    progresso.rodando = false;
                     return resolve(false);
                 }
 
                 embaralhar(clientes);
+                progresso.total = clientes.length;
                 console.log(`🚀 ${clientes.length} clientes carregados. Iniciando os disparos...`);
-
-                let contador = 0;
 
                 for (const cliente of clientes) {
                     let numeroLimpo = cliente.telefone.replace(/\D/g, '');
@@ -86,22 +100,22 @@ async function dispararCampanha(client) {
                     }
 
                     const numeroWhatsApp = `${numeroLimpo}@c.us`;
+                    progresso.atual = numeroLimpo;
 
                     try {
-                        console.log(`[${contador + 1}/${clientes.length}] Preparando envio para ${numeroLimpo}...`);
+                        console.log(`[${progresso.enviados + progresso.erros + 1}/${clientes.length}] Preparando envio para ${numeroLimpo}...`);
 
                         await esperar(tempoContato());
 
                         await client.sendText(numeroWhatsApp, mensagem);
 
                         salvarSucesso(numeroLimpo);
+                        progresso.enviados++;
                         console.log(`✅ Mensagem enviada com sucesso para: ${numeroLimpo}`);
 
                         await esperar(tempoEnvio());
 
-                        contador++;
-
-                        if (contador % 25 === 0 && contador < clientes.length) {
+                        if (progresso.enviados % 25 === 0 && progresso.enviados < clientes.length) {
                             const pausa = tempoPausaGrande();
                             console.log(`⏳ Iniciando pausa de segurança de ${Math.round(pausa / 1000)} segundos para evitar bloqueios...`);
                             await esperar(pausa);
@@ -110,15 +124,18 @@ async function dispararCampanha(client) {
 
                     } catch (erro) {
                         salvarErro(numeroLimpo, erro.message || JSON.stringify(erro));
+                        progresso.erros++;
                         console.log(`❌ Erro ao enviar para ${numeroLimpo}: ${erro.message || 'Erro desconhecido'}`);
                     }
                 }
 
+                progresso.atual = null;
+                progresso.rodando = false;
                 console.log("🎉 Todos os disparos foram finalizados na lista!");
                 resolve(true);
             });
     });
 }
 
-// Exporta a função para ser utilizada pelo server.js
-module.exports = { dispararCampanha };
+// Exporta as funções para serem utilizadas pelo server.js
+module.exports = { dispararCampanha, getProgresso };

@@ -3,7 +3,7 @@ const wppconnect = require('@wppconnect-team/wppconnect');
 const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');
-const { dispararCampanha } = require('./campanha');
+const { dispararCampanha, getProgresso } = require('./campanha');
 
 const ROOT_DIR = path.resolve(__dirname, '..');
 const PUBLIC_DIR = path.join(ROOT_DIR, 'public');
@@ -76,7 +76,7 @@ app.post('/api/bot/iniciar', (req, res) => {
     wppconnect.create({
         session: 'barbearia',
         folderNameToken: TOKENS_DIR, // Utiliza a pasta tokens em vez de chrome-data
-        headless: false,
+        headless: true, // QR e status ficam no painel, não precisa do navegador visível
         useChrome: true,
         autoClose: 0,
         waitForLogin: true,
@@ -159,6 +159,11 @@ app.post('/api/campanha/iniciar', async (req, res) => {
     // Executa a campanha em segundo plano
     await dispararCampanha(clientInstance);
     campanhaEmAndamento = false;
+});
+
+// Progresso da campanha em andamento (ou da última executada)
+app.get('/api/campanha/progresso', (req, res) => {
+    res.json(getProgresso());
 });
 
 function ativarRespostasAutomaticas(client) {

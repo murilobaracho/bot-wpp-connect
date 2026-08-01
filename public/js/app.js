@@ -39,6 +39,10 @@ async function carregarDados() {
 
         statusDot.classList.toggle('online', !!data.botConectado);
 
+        if (data.campanhaRodando) {
+            mostrarProgressoCampanha();
+        }
+
         const qrBox = document.getElementById('qrBox');
         const qrImage = document.getElementById('qrImage');
         if (data.qrCode) {
@@ -121,9 +125,63 @@ document.getElementById('inputCsv').addEventListener('change', async (event) => 
 async function iniciarCampanha() {
     if (!confirm('Deseja realmente iniciar os disparos para a lista do CSV?')) return;
 
-    const res = await fetch('/api/campanha/iniciar', { method: 'POST' });
-    const data = await res.json();
-    alert(data.mensagem);
+    try {
+        const res = await fetch('/api/campanha/iniciar', { method: 'POST' });
+        const data = await res.json();
+        toast(data.mensagem, res.ok ? 'success' : 'error');
+
+        if (res.ok) {
+            mostrarProgressoCampanha();
+        }
+    } catch (e) {
+        toast('Erro de conexão ao iniciar a campanha.', 'error');
+    }
+}
+
+let progressoInterval = null;
+
+function mostrarProgressoCampanha() {
+    const card = document.getElementById('campanhaProgressoCard');
+
+    if (!card.hidden && progressoInterval) return;
+
+    card.hidden = false;
+    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    atualizarProgressoCampanha();
+    if (progressoInterval) clearInterval(progressoInterval);
+    progressoInterval = setInterval(atualizarProgressoCampanha, 2000);
+}
+
+async function atualizarProgressoCampanha() {
+    try {
+        const res = await fetch('/api/campanha/progresso');
+        const data = await res.json();
+
+        const total = data.total || 0;
+        const enviados = data.enviados || 0;
+        const erros = data.erros || 0;
+        const feitos = enviados + erros;
+        const pct = total > 0 ? Math.round((feitos / total) * 100) : 0;
+
+        document.getElementById('campanhaProgressoFill').style.width = pct + '%';
+        document.getElementById('campanhaEnviados').textContent = enviados;
+        document.getElementById('campanhaErros').textContent = erros;
+        document.getElementById('campanhaTotal').textContent = total;
+
+        const desc = document.getElementById('campanhaProgressoDesc');
+        if (!data.rodando && total > 0) {
+            desc.textContent = 'Campanha concluída!';
+            clearInterval(progressoInterval);
+            progressoInterval = null;
+        } else if (data.atual) {
+            desc.textContent = `Enviando para ${data.atual}...`;
+        } else {
+            desc.textContent = 'Preparando disparos...';
+        }
+    } catch (e) {
+        console.error(e);
+    }
 }
 
 carregarDados();
