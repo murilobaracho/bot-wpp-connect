@@ -23,6 +23,18 @@ Bot de automação para WhatsApp desenvolvido em Node.js com a biblioteca **WPPC
 
 ---
 
+## 📦 Dependências (npm)
+
+Instaladas automaticamente pelo `npm install`, mas seguem listadas aqui pra referência:
+
+| Pacote | Versão | Uso |
+|---|---|---|
+| [`@wppconnect-team/wppconnect`](https://www.npmjs.com/package/@wppconnect-team/wppconnect) | `^2.2.6` | Conexão com o WhatsApp Web (QR Code, envio/recebimento de mensagens) |
+| [`express`](https://www.npmjs.com/package/express) | `^5.2.1` | Servidor web do painel e API |
+| [`csv-parser`](https://www.npmjs.com/package/csv-parser) | `^3.2.1` | Leitura do `clientes.csv` na campanha |
+
+---
+
 ## 📥 Instalação
 
 ```bash
