@@ -1,31 +1,102 @@
-# Bot WPP Connect 🤖📱
+# Bot Barbearia WhatsApp 💈🤖
 
-Um bot de automação para WhatsApp desenvolvido em Node.js utilizando a biblioteca **WPPConnect**. Este projeto foi projetado para ser prático e de fácil execução, incluindo scripts automatizados para inicialização rápida no Windows de forma visível ou em segundo plano.
+Bot de automação para WhatsApp desenvolvido em Node.js com a biblioteca **WPPConnect**, com um painel web para controlar tudo sem precisar mexer em código: conectar o WhatsApp, editar as mensagens, disparar campanhas e importar a lista de contatos.
 
 ---
 
 ## 🚀 Funcionalidades
 
-- **Automação de Mensagens:** Envio automatizado utilizando a API do WPPConnect.
-- **Configuração Simples:** Mensagens customizáveis através de um arquivo de texto simples (`mensagem.txt`).
-- **Cooldown de 10min por mensagem-usuário**
-- **Inicialização Facilitada para Windows:**
-  - `Iniciar-Bot.bat`: Abre o terminal e executa o bot instantaneamente.
-  - `iniciar.vbs`: Inicializa o bot de forma silenciosa (em segundo plano).
+- **Painel web local:** conectar/desconectar o WhatsApp, editar mensagens e disparar campanhas pelo navegador.
+- **Resposta automática:** responde quem manda mensagem, com cooldown de 10 min por contato para não repetir.
+- **Campanha em massa:** dispara uma mensagem para todos os contatos de um CSV, com pausas aleatórias para reduzir risco de bloqueio.
+- **Importação de contatos:** troque a lista de disparo (`clientes.csv`) direto pelo painel, sem editar arquivos manualmente.
+- **Bot standalone:** modo alternativo (`src/index.js`) que só fica ouvindo e respondendo mensagens, sem painel.
 
 ---
 
 ## 🛠️ Pré-requisitos
 
-Antes de iniciar, certifique-se de ter instalado em sua máquina:
-- [Node.js](https://nodejs.org/) (Versão LTS recomendada)
-- [Git](https://git-scm.com/) (Opcional, para clonar o repositório)
+- [Node.js](https://nodejs.org/) (versão LTS recomendada)
+- Google Chrome instalado (usado pelo WPPConnect para abrir o WhatsApp Web)
+- [Git](https://git-scm.com/) (opcional, para clonar o repositório)
 
 ---
 
 ## 📥 Instalação
 
-1. Clone o repositório ou baixe os arquivos do projeto:
-   ```bash
-   git clone [https://github.com/murilobaracho/bot-wpp-connect.git](https://github.com/murilobaracho/bot-wpp-connect.git)
-   cd bot-wpp-connect
+```bash
+git clone https://github.com/murilobaracho/bot-wpp-connect.git
+cd bot-wpp-connect
+npm install
+```
+
+---
+
+## 📂 Estrutura do projeto
+
+```
+bot_barbeariawpp/
+├── src/
+│   ├── server.js      # Painel web (conexão, mensagens, campanha, contatos)
+│   ├── index.js        # Bot standalone (sem painel, só resposta automática)
+│   └── campanha.js     # Lógica de disparo em massa
+├── public/
+│   ├── index.html       # Interface do painel
+│   ├── css/style.css
+│   └── js/app.js
+├── data/
+│   ├── clientes.csv         # Lista de contatos da campanha
+│   ├── mensagem.txt         # Mensagem de resposta automática
+│   ├── mensagemCampanha.txt # Mensagem da campanha
+│   └── enviados.txt         # Log de envios da campanha (gerado em tempo de execução)
+├── scripts/
+│   └── iniciarPainel.bat    # Atalho para subir o painel no Windows
+└── tokens/                  # Sessão do WhatsApp (gerado automaticamente, não versionado)
+```
+
+---
+
+## ▶️ Uso
+
+### Painel web (recomendado)
+
+```bash
+npm run panel
+```
+
+Ou, no Windows, dê duplo clique em [scripts/iniciarPainel.bat](scripts/iniciarPainel.bat).
+
+O painel abre automaticamente em `http://localhost:3000`, onde é possível:
+- Conectar o WhatsApp (escaneando o QR Code que aparece no navegador do WPPConnect) e desconectar quando quiser.
+- Editar a mensagem de resposta automática e a mensagem de campanha.
+- Importar um novo `clientes.csv` para a campanha.
+- Disparar a campanha para todos os contatos da lista.
+
+### Bot standalone (sem painel)
+
+```bash
+npm start
+```
+
+Sobe apenas o bot de resposta automática, lendo a mensagem de `data/mensagemCampanha.txt`.
+
+### Campanha via terminal
+
+```bash
+npm run campanha
+```
+
+---
+
+## ⚙️ Configuração
+
+- **Mensagem de resposta automática:** `data/mensagem.txt` (editável também pelo painel).
+- **Mensagem de campanha:** `data/mensagemCampanha.txt` (editável também pelo painel).
+- **Lista de contatos da campanha:** `data/clientes.csv`, com uma coluna `Telefone` (DDD + número, com ou sem `55`).
+- **Cooldown de resposta automática:** 10 minutos por contato (ajustável em `COOLDOWN` no `src/server.js`/`src/index.js`).
+
+---
+
+## ⚠️ Aviso
+
+Disparos em massa não solicitados podem violar os Termos de Serviço do WhatsApp e resultar em bloqueio do número. Use com moderação, preferencialmente com contatos que já interagiram com o seu negócio.
