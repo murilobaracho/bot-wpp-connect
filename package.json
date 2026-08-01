@@ -4,9 +4,11 @@
   "description": "Bot WhatsApp Barbearia",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "campanha": "node campanha.js"
   },
   "dependencies": {
-    "@wppconnect-team/wppconnect": "latest"
+    "@wppconnect-team/wppconnect": "latest",
+    "csv-parser": "^3.2.0"
   }
 }
