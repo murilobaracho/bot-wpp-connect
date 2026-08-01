@@ -23,6 +23,7 @@ const respondidos = {};
 let clientInstance = null;
 let statusTexto = 'Desconectado';
 let campanhaEmAndamento = false;
+let qrCodeAtual = null;
 
 // Garante que os arquivos existam
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -38,6 +39,7 @@ app.get('/api/dados', async (req, res) => {
         try {
             conectado = await clientInstance.isConnected();
             statusTexto = conectado ? 'Conectado e Pronto!' : 'Conectando...';
+            if (conectado) qrCodeAtual = null;
         } catch (e) {
             conectado = false;
             statusTexto = 'Desconectado';
@@ -49,7 +51,9 @@ app.get('/api/dados', async (req, res) => {
         msgCampanha: fs.readFileSync(MENSAGEM_CAMPANHA_PATH, 'utf8'),
         botConectado: conectado,
         statusTexto: statusTexto,
-        campanhaRodando: campanhaEmAndamento
+        campanhaRodando: campanhaEmAndamento,
+        // Independente do isConnected(): só mostra QR enquanto de fato aguarda leitura
+        qrCode: qrCodeAtual
     });
 });
 
@@ -67,6 +71,7 @@ app.post('/api/bot/iniciar', (req, res) => {
     }
 
     statusTexto = 'Iniciando / Aguardando QR Code...';
+    qrCodeAtual = null;
 
     wppconnect.create({
         session: 'barbearia',
@@ -75,7 +80,16 @@ app.post('/api/bot/iniciar', (req, res) => {
         useChrome: true,
         autoClose: 0,
         waitForLogin: true,
-        logQR: true,
+        logQR: false, // QR não vai pro terminal, é exibido no painel
+        catchQR: (base64Qr) => {
+            qrCodeAtual = base64Qr;
+            statusTexto = 'Aguardando leitura do QR Code...';
+        },
+        statusFind: (status) => {
+            if (status === 'qrReadSuccess' || status === 'inChat' || status === 'isLogged') {
+                qrCodeAtual = null;
+            }
+        },
         browserArgs: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
@@ -86,12 +100,14 @@ app.post('/api/bot/iniciar', (req, res) => {
     .then(client => {
         clientInstance = client;
         statusTexto = 'Conectado e Pronto!';
+        qrCodeAtual = null;
         ativarRespostasAutomaticas(client);
         console.log("🤖 WhatsApp conectado com sucesso!");
     })
     .catch(err => {
         statusTexto = 'Erro ao conectar';
         clientInstance = null;
+        qrCodeAtual = null;
         console.log(err);
     });
 
@@ -112,6 +128,7 @@ app.post('/api/bot/encerrar', async (req, res) => {
 
     clientInstance = null;
     statusTexto = 'Desconectado';
+    qrCodeAtual = null;
     res.json({ mensagem: 'WhatsApp desconectado!' });
 });
 

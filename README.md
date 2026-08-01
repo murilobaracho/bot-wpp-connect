@@ -7,6 +7,7 @@ Bot de automação para WhatsApp desenvolvido em Node.js com a biblioteca **WPPC
 ## 🚀 Funcionalidades
 
 - **Painel web local:** conectar/desconectar o WhatsApp, editar mensagens e disparar campanhas pelo navegador.
+- **QR Code no painel:** o QR de conexão aparece direto na página, sem precisar olhar terminal.
 - **Resposta automática:** responde quem manda mensagem, com cooldown de 10 min por contato para não repetir.
 - **Campanha em massa:** dispara uma mensagem para todos os contatos de um CSV, com pausas aleatórias para reduzir risco de bloqueio.
 - **Importação de contatos:** troque a lista de disparo (`clientes.csv`) direto pelo painel, sem editar arquivos manualmente.
@@ -50,7 +51,8 @@ bot_barbeariawpp/
 │   ├── mensagemCampanha.txt # Mensagem da campanha
 │   └── enviados.txt         # Log de envios da campanha (gerado em tempo de execução)
 ├── scripts/
-│   └── iniciarPainel.bat    # Atalho para subir o painel no Windows
+│   ├── iniciarPainel.bat            # Atalho para subir o painel com terminal visível (debug)
+│   └── iniciarPainelSilencioso.vbs  # Atalho para subir o painel sem abrir terminal
 └── tokens/                  # Sessão do WhatsApp (gerado automaticamente, não versionado)
 ```
 
@@ -64,10 +66,13 @@ bot_barbeariawpp/
 npm run panel
 ```
 
-Ou, no Windows, dê duplo clique em [scripts/iniciarPainel.bat](scripts/iniciarPainel.bat).
+No Windows, dê duplo clique em:
+- [scripts/iniciarPainelSilencioso.vbs](scripts/iniciarPainelSilencioso.vbs) — sobe o painel sem abrir nenhuma janela de terminal (uso normal).
+- [scripts/iniciarPainel.bat](scripts/iniciarPainel.bat) — sobe o painel com o terminal visível, útil para ver logs em caso de erro.
 
 O painel abre automaticamente em `http://localhost:3000`, onde é possível:
-- Conectar o WhatsApp (escaneando o QR Code que aparece no navegador do WPPConnect) e desconectar quando quiser.
+- Conectar o WhatsApp: o QR Code aparece direto no card de conexão do painel — basta escanear com o celular.
+- Desconectar o WhatsApp a qualquer momento pelo botão ao lado do status.
 - Editar a mensagem de resposta automática e a mensagem de campanha.
 - Importar um novo `clientes.csv` para a campanha.
 - Disparar a campanha para todos os contatos da lista.

@@ -38,6 +38,16 @@ async function carregarDados() {
         statusElem.innerText = texto;
 
         statusDot.classList.toggle('online', !!data.botConectado);
+
+        const qrBox = document.getElementById('qrBox');
+        const qrImage = document.getElementById('qrImage');
+        if (data.qrCode) {
+            qrImage.src = data.qrCode;
+            qrBox.hidden = false;
+        } else {
+            qrBox.hidden = true;
+            qrImage.src = '';
+        }
     } catch (e) {
         console.error(e);
     }

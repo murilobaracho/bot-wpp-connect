@@ -191,6 +191,37 @@ body {
     font-size: 12.5px;
 }
 
+/* QR Code */
+
+.qr-box {
+    margin-top: 16px;
+    padding: 20px;
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+    background: #fafbfc;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    text-align: center;
+}
+
+.qr-box img {
+    width: 220px;
+    height: 220px;
+    border-radius: 8px;
+    background: #fff;
+    padding: 8px;
+    box-shadow: var(--shadow);
+}
+
+.qr-box p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--text-muted);
+    max-width: 300px;
+}
+
 /* Fields */
 
 .field-group {
