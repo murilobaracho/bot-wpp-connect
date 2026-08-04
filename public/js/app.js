@@ -2,6 +2,32 @@ let digitando = false;
 let conectando = false;
 let avisoPausaMostrado = false;
 
+function aplicarTema(tema) {
+    if (tema) {
+        document.documentElement.dataset.theme = tema;
+    } else {
+        delete document.documentElement.dataset.theme;
+    }
+
+    const escuro = tema
+        ? tema === 'dark'
+        : window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    document.getElementById('iconeSol').hidden = escuro;
+    document.getElementById('iconeLua').hidden = !escuro;
+}
+
+function alternarTema() {
+    const atual = document.documentElement.dataset.theme
+        || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    const novo = atual === 'dark' ? 'light' : 'dark';
+
+    localStorage.setItem('tema', novo);
+    aplicarTema(novo);
+}
+
+aplicarTema(localStorage.getItem('tema'));
+
 function toast(mensagem, tipo = 'success') {
     const container = document.getElementById('toastContainer');
     const el = document.createElement('div');
