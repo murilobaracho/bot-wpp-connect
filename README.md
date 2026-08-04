@@ -113,7 +113,7 @@ npm run campanha
 - **Mensagem de campanha:** `data/mensagemCampanha.txt` (editável também pelo painel).
 - **Lista de contatos da campanha:** `data/clientes.csv`, com uma coluna `Telefone` (DDD + número, com ou sem `55`).
 - **Cooldown de resposta automática:** 10 minutos por contato (ajustável em `COOLDOWN` no `src/server.js`/`src/index.js`).
-- **Nome da sessão do WhatsApp:** variável de ambiente `WPP_SESSION` (padrão: `bot`). Define o nome da pasta em `tokens/` onde a sessão fica salva.
+- **Nome da sessão do WhatsApp:** variável de ambiente `WPP_SESSION` (padrão: `barbearia`). Define o nome da pasta em `tokens/` onde a sessão fica salva.
 
 ---
 
