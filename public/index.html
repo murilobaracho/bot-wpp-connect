@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel de Controle - WhatsApp Bot</title>
+    <script>
+        (function () {
+            var tema = localStorage.getItem('tema');
+            if (tema) document.documentElement.dataset.theme = tema;
+        })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
@@ -20,15 +26,27 @@
                 <p class="brand-sub">Automação de atendimento via WhatsApp</p>
             </div>
         </div>
-        <div class="status-pill" id="statusPill">
-            <span class="status-dot" id="statusDot"></span>
-            <span id="botStatus">Verificando...</span>
-            <button id="btnEncerrarBot" class="btn-icon" onclick="encerrarBot()" title="Encerrar bot">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 2v10"></path>
-                    <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
+        <div class="topbar-actions">
+            <button id="btnTema" class="theme-toggle" onclick="alternarTema()" title="Alternar tema">
+                <svg id="iconeSol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="4"></circle>
+                    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+                </svg>
+                <svg id="iconeLua" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" hidden>
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
                 </svg>
             </button>
+
+            <div class="status-pill" id="statusPill">
+                <span class="status-dot" id="statusDot"></span>
+                <span id="botStatus">Verificando...</span>
+                <button id="btnEncerrarBot" class="btn-icon" onclick="encerrarBot()" title="Encerrar bot">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2v10"></path>
+                        <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
+                    </svg>
+                </button>
+            </div>
         </div>
     </header>
 
