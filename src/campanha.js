@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const csv = require('csv-parser');
+const { registrarEvento } = require('./stats');
 
 const DATA_DIR = path.resolve(__dirname, '..', 'data');
 const LOG_ENVIADOS = path.join(DATA_DIR, 'enviados.txt');
@@ -110,6 +111,7 @@ async function dispararCampanha(client) {
                         await client.sendText(numeroWhatsApp, mensagem);
 
                         salvarSucesso(numeroLimpo);
+                        registrarEvento('campanha_enviada', { contato: numeroLimpo });
                         progresso.enviados++;
                         console.log(`✅ Mensagem enviada com sucesso para: ${numeroLimpo}`);
 
@@ -124,6 +126,7 @@ async function dispararCampanha(client) {
 
                     } catch (erro) {
                         salvarErro(numeroLimpo, erro.message || JSON.stringify(erro));
+                        registrarEvento('campanha_erro', { contato: numeroLimpo });
                         progresso.erros++;
                         console.log(`❌ Erro ao enviar para ${numeroLimpo}: ${erro.message || 'Erro desconhecido'}`);
                     }

@@ -5,5 +5,6 @@ data/clientes.csv
 data/clientes.csv.old
 data/enviados.txt
 data/erros.txt
+data/eventos.jsonl
 data/mensagemCampanha.txt
 .claude/

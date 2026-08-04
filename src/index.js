@@ -1,6 +1,7 @@
 const wppconnect = require('@wppconnect-team/wppconnect');
 const fs = require('fs');
 const path = require('path');
+const { registrarEvento } = require('./stats');
 
 const ROOT_DIR = path.resolve(__dirname, '..');
 const mensagem = fs.readFileSync(path.join(ROOT_DIR, 'data', 'mensagemCampanha.txt'), 'utf8');
@@ -111,6 +112,7 @@ function start(client) {
         await client.sendText(contato, mensagem);
 
         respondidos[contato] = agora;
+        registrarEvento('resposta_automatica', { contato });
 
         console.log("Mensagem enviada para:", contato);
 
