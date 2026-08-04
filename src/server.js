@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');
 const { dispararCampanha, getProgresso } = require('./campanha');
+const { registrarEvento, obterResumo } = require('./stats');
 
 const ROOT_DIR = path.resolve(__dirname, '..');
 const PUBLIC_DIR = path.join(ROOT_DIR, 'public');
@@ -45,6 +46,7 @@ async function encerrarTudo(motivo) {
 
     if (clientInstance) {
         try {
+            registrarEvento('desconexao');
             await clientInstance.close();
         } catch (e) {
             console.log('Erro ao encerrar o WhatsApp:', e);
@@ -168,6 +170,7 @@ app.post('/api/bot/iniciar', (req, res) => {
         statusTexto = 'Conectado e Pronto!';
         qrCodeAtual = null;
         ativarRespostasAutomaticas(client);
+        registrarEvento('conexao');
         console.log("🤖 WhatsApp conectado com sucesso!");
     })
     .catch(err => {
@@ -195,6 +198,7 @@ app.post('/api/bot/encerrar', async (req, res) => {
     clientInstance = null;
     statusTexto = 'Desconectado';
     qrCodeAtual = null;
+    registrarEvento('desconexao');
     res.json({ mensagem: 'WhatsApp desconectado!' });
 });
 
@@ -232,6 +236,10 @@ app.get('/api/campanha/progresso', (req, res) => {
     res.json(getProgresso());
 });
 
+app.get('/api/dashboard', (req, res) => {
+    res.json(obterResumo());
+});
+
 // Trava de segurança: pausa a resposta automática se enviar demais em pouco tempo
 const LIMITE_ENVIOS = 5;
 const JANELA_LIMITE_MS = 60 * 1000;
@@ -246,6 +254,7 @@ function podeEnviarAutomatico() {
 
     if (enviosRecentes.length >= LIMITE_ENVIOS) {
         respostaAutomaticaPausada = true;
+        registrarEvento('pausa_seguranca');
         console.log(`🚨 Resposta automática PAUSADA: ${LIMITE_ENVIOS}+ mensagens em menos de 1 minuto (comportamento anômalo). Reinicie o bot depois de investigar.`);
         return false;
     }
@@ -289,6 +298,7 @@ function ativarRespostasAutomaticas(client) {
             const msgBot = fs.readFileSync(MENSAGEM_PATH, 'utf8');
             await client.sendText(contato, msgBot);
             respondidos[contato] = agora;
+            registrarEvento('resposta_automatica', { contato });
             console.log("📩 Resposta automática enviada para:", contato);
         } catch (e) {
             console.log("Erro no envio:", e);

@@ -54,6 +54,43 @@
 
         <section class="card card-wide">
             <div class="card-header">
+                <span class="card-icon">📈</span>
+                <div>
+                    <h2>Dashboard</h2>
+                    <p class="card-desc">Atividade do bot nos últimos 14 dias.</p>
+                </div>
+            </div>
+
+            <div class="stat-tiles">
+                <div class="stat-tile">
+                    <span class="stat-label">Atendimentos hoje</span>
+                    <span class="stat-value" id="statHoje">0</span>
+                </div>
+                <div class="stat-tile">
+                    <span class="stat-label">Atendimentos no total</span>
+                    <span class="stat-value" id="statTotal">0</span>
+                </div>
+                <div class="stat-tile">
+                    <span class="stat-label">Contatos únicos</span>
+                    <span class="stat-value" id="statContatos">0</span>
+                </div>
+                <div class="stat-tile">
+                    <span class="stat-label">Campanha: enviados / erros</span>
+                    <span class="stat-value" id="statCampanha">0 / 0</span>
+                </div>
+            </div>
+
+            <div class="chart-wrap">
+                <div class="chart-bars" id="chartBarras"></div>
+                <div class="chart-labels" id="chartLabels"></div>
+            </div>
+            <p class="chart-hint" id="avisoPausaDashboard" hidden>
+                ⚠️ Última pausa de segurança: <span id="dataPausaSeguranca"></span>
+            </p>
+        </section>
+
+        <section class="card card-wide">
+            <div class="card-header">
                 <span class="card-icon">🔌</span>
                 <div>
                     <h2>Conexão do WhatsApp</h2>

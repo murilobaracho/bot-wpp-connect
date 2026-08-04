@@ -7,6 +7,7 @@ Bot de automação para WhatsApp desenvolvido em Node.js com a biblioteca **WPPC
 ## 🚀 Funcionalidades
 
 - **Painel web local:** conectar/desconectar o WhatsApp, editar mensagens e disparar campanhas pelo navegador.
+- **Dashboard:** atendimentos automáticos, contatos únicos e envios de campanha, com gráfico dos últimos 14 dias.
 - **QR Code no painel:** o QR de conexão aparece direto na página, sem precisar olhar terminal.
 - **Resposta automática:** responde quem manda mensagem, com cooldown de 10 min por contato para não repetir.
 - **Campanha em massa:** dispara uma mensagem para todos os contatos de um CSV, com pausas aleatórias para reduzir risco de bloqueio.
@@ -52,7 +53,8 @@ bot-wpp-connect/
 ├── src/
 │   ├── server.js      # Painel web (conexão, mensagens, campanha, contatos)
 │   ├── index.js        # Bot standalone (sem painel, só resposta automática)
-│   └── campanha.js     # Lógica de disparo em massa
+│   ├── campanha.js     # Lógica de disparo em massa
+│   └── stats.js        # Registro de eventos e agregação para o dashboard
 ├── public/
 │   ├── index.html       # Interface do painel
 │   ├── css/style.css
@@ -61,7 +63,8 @@ bot-wpp-connect/
 │   ├── clientes.csv         # Lista de contatos da campanha
 │   ├── mensagem.txt         # Mensagem de resposta automática
 │   ├── mensagemCampanha.txt # Mensagem da campanha
-│   └── enviados.txt         # Log de envios da campanha (gerado em tempo de execução)
+│   ├── enviados.txt         # Log de envios da campanha (gerado em tempo de execução)
+│   └── eventos.jsonl        # Eventos usados no dashboard (gerado em tempo de execução)
 ├── scripts/
 │   ├── iniciarPainel.bat            # Atalho para subir o painel com terminal visível (debug)
 │   └── iniciarPainelSilencioso.vbs  # Atalho para subir o painel sem abrir terminal

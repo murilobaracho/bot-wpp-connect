@@ -237,5 +237,74 @@ function agendarProximaConsulta() {
     }, conectando ? 1000 : 3000);
 }
 
+async function carregarDashboard() {
+    try {
+        const res = await fetch('/api/dashboard');
+        const data = await res.json();
+
+        document.getElementById('statHoje').textContent = data.respostasAutomaticas.hoje;
+        document.getElementById('statTotal').textContent = data.respostasAutomaticas.total;
+        document.getElementById('statContatos').textContent = data.contatosUnicos;
+        document.getElementById('statCampanha').textContent = `${data.campanha.enviados} / ${data.campanha.erros}`;
+
+        const avisoPausa = document.getElementById('avisoPausaDashboard');
+        if (data.ultimaPausaSeguranca) {
+            avisoPausa.hidden = false;
+            document.getElementById('dataPausaSeguranca').textContent =
+                new Date(data.ultimaPausaSeguranca).toLocaleString('pt-BR');
+        } else {
+            avisoPausa.hidden = true;
+        }
+
+        renderizarGrafico(data.serieDiaria);
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+function renderizarGrafico(serie) {
+    const maximo = Math.max(1, ...serie.map(d => d.total));
+    const barrasEl = document.getElementById('chartBarras');
+    const labelsEl = document.getElementById('chartLabels');
+
+    barrasEl.innerHTML = '';
+    labelsEl.innerHTML = '';
+
+    serie.forEach(({ dia, total }) => {
+        const altura = Math.round((total / maximo) * 100);
+        const diaMes = String(new Date(dia + 'T00:00:00').getDate()).padStart(2, '0');
+
+        const col = document.createElement('div');
+        col.className = 'chart-bar-col';
+
+        const valor = document.createElement('span');
+        valor.className = 'chart-bar-value';
+        valor.textContent = total > 0 ? total : '';
+
+        const barra = document.createElement('div');
+        barra.className = 'chart-bar';
+        barra.style.height = altura + '%';
+        barra.title = `${diaMes}: ${total} atendimento${total === 1 ? '' : 's'}`;
+
+        col.append(valor, barra);
+        barrasEl.appendChild(col);
+
+        const labelCol = document.createElement('div');
+        labelCol.className = 'chart-label-col';
+        labelCol.textContent = diaMes;
+        labelsEl.appendChild(labelCol);
+    });
+}
+
+function agendarDashboard() {
+    setTimeout(async () => {
+        await carregarDashboard();
+        agendarDashboard();
+    }, 30000);
+}
+
 carregarDados();
 agendarProximaConsulta();
+
+carregarDashboard();
+agendarDashboard();
