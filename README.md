@@ -1,6 +1,8 @@
-# WhatsApp Bot Panel 🤖
+# Bot Barbearia WhatsApp 💈🤖
 
-Bot de automação para WhatsApp desenvolvido em Node.js com a biblioteca **WPPConnect**, com um painel web para controlar tudo sem precisar mexer em código: conectar o WhatsApp, editar as mensagens, disparar campanhas e importar a lista de contatos. Serve como base para qualquer negócio que precise de atendimento/campanha automatizados via WhatsApp — basta trocar as mensagens padrão e a lista de contatos.
+Bot de automação para WhatsApp desenvolvido em Node.js com a biblioteca **WPPConnect**, com um painel web para controlar tudo sem precisar mexer em código: conectar o WhatsApp, editar as mensagens, disparar campanhas e importar a lista de contatos.
+
+> Esta é a instância personalizada para a barbearia, baseada no [projeto white label](https://github.com/murilobaracho/bot-wpp-connect/tree/main).
 
 ---
 

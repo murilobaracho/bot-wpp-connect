@@ -1,7 +1,7 @@
 {
-  "name": "wpp-bot-panel",
+  "name": "bot-barbearia",
   "version": "1.0.0",
-  "description": "Bot de automação para WhatsApp com painel web de controle",
+  "description": "Bot WhatsApp Barbearia",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",

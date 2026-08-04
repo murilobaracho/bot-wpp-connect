@@ -12,7 +12,7 @@ const TOKENS_DIR = path.join(ROOT_DIR, 'tokens');
 const MENSAGEM_PATH = path.join(DATA_DIR, 'mensagem.txt');
 const MENSAGEM_CAMPANHA_PATH = path.join(DATA_DIR, 'mensagemCampanha.txt');
 const CLIENTES_PATH = path.join(DATA_DIR, 'clientes.csv');
-const SESSION_NAME = process.env.WPP_SESSION || 'bot';
+const SESSION_NAME = process.env.WPP_SESSION || 'barbearia';
 
 const app = express();
 app.use(express.json({ limit: '5mb' }));

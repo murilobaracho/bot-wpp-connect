@@ -37,7 +37,7 @@ function podeEnviarAutomatico() {
 }
 
 const chromeData = path.resolve(ROOT_DIR, 'chrome-data');
-const SESSION_NAME = process.env.WPP_SESSION || 'bot';
+const SESSION_NAME = process.env.WPP_SESSION || 'barbearia';
 
 wppconnect.create({
 
