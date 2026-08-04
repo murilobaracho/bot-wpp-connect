@@ -8,16 +8,13 @@ const mensagem = fs.readFileSync(path.join(ROOT_DIR, 'data', 'mensagemCampanha.t
 const COOLDOWN = 10 * 60 * 1000;
 const respondidos = {};
 
-// Só reage a tipos que são mensagens de verdade escritas por alguém. onMessage também
-// dispara pra eventos como chamada perdida, mudança de código de segurança, entrada/saída
-// de grupo, mensagem apagada etc. — que têm um contato real em "from" mas não são conversa.
+// Tipos de mensagem que representam conteúdo real (ignora notificações, chamadas, etc.)
 const TIPOS_MENSAGEM_VALIDOS = new Set([
   'chat', 'image', 'video', 'audio', 'ptt', 'sticker', 'document',
   'location', 'vcard', 'multi_vcard'
 ]);
 
-// Trava de segurança: se disparar mensagens demais em pouco tempo, algo está errado
-// (ex.: uma brecha de filtro ainda não identificada) — pausa em vez de virar disparo em massa
+// Trava de segurança: pausa a resposta automática se enviar demais em pouco tempo
 const LIMITE_ENVIOS = 5;
 const JANELA_LIMITE_MS = 60 * 1000;
 let enviosRecentes = [];
@@ -40,10 +37,11 @@ function podeEnviarAutomatico() {
 }
 
 const chromeData = path.resolve(ROOT_DIR, 'chrome-data');
+const SESSION_NAME = process.env.WPP_SESSION || 'bot';
 
 wppconnect.create({
 
-  session: 'barbearia',
+  session: SESSION_NAME,
 
   headless: false,
 
@@ -75,35 +73,28 @@ function start(client) {
 
   console.log("BOT INICIADO");
 
-  // Momento em que o bot começou a ouvir: usado para ignorar mensagens antigas
-  // que o WhatsApp sincroniza ao conectar (senão o bot "responde" ao histórico inteiro)
   const inicioEscuta = Math.floor(Date.now() / 1000);
 
   client.onMessage(async (message) => {
 
     if (!message.from || message.fromMe) return;
-
-    // SÓ REAGE A MENSAGENS DE CONTEÚDO DE VERDADE (texto, mídia...), ignora
-    // notificações, chamadas, eventos de grupo, mensagens apagadas, etc.
     if (!TIPOS_MENSAGEM_VALIDOS.has(message.type)) return;
 
-    // IGNORA GRUPOS (isGroupMsg nem sempre é confiável sozinho: também checa o
-    // sufixo do JID e o campo "author", que só existe em mensagens de grupo)
+    // IGNORA GRUPOS
     if (message.isGroupMsg) return;
     if (message.from.endsWith('@g.us')) return;
     if (message.author && message.author !== message.from) return;
 
-    // IGNORA STATUS/BROADCAST DO WHATSAPP (aparece pra qualquer contato da agenda,
-    // mesmo sem nunca ter havido conversa)
+    // IGNORA STATUS/BROADCAST
     if (message.broadcast) return;
     if (message.from === 'status@broadcast') return;
 
-    // IGNORA MENSAGENS DO HISTÓRICO SINCRONIZADAS NA CONEXÃO
+    // IGNORA HISTÓRICO SINCRONIZADO NA CONEXÃO
     if (message.isNewMsg === false) return;
     const carimboTempo = typeof message.timestamp === 'number' ? message.timestamp : message.t;
     if (typeof carimboTempo === 'number' && carimboTempo < inicioEscuta) return;
 
-    // ACEITA CONTATOS DIRETOS: número (@c.us) ou id vinculado/privacidade (@lid)
+    // ACEITA CONTATOS DIRETOS: número (@c.us) ou id vinculado (@lid)
     if (!message.from.endsWith("@c.us") && !message.from.endsWith("@lid")) return;
 
     const contato = message.from;

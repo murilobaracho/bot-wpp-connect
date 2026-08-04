@@ -1,5 +1,5 @@
 @echo off
-title Painel Barbearia Bot
+title Painel WhatsApp Bot
 color 0A
 echo ==========================================
 echo    INICIANDO O PAINEL DO WHATSAPP...

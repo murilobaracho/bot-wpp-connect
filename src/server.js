@@ -12,6 +12,7 @@ const TOKENS_DIR = path.join(ROOT_DIR, 'tokens');
 const MENSAGEM_PATH = path.join(DATA_DIR, 'mensagem.txt');
 const MENSAGEM_CAMPANHA_PATH = path.join(DATA_DIR, 'mensagemCampanha.txt');
 const CLIENTES_PATH = path.join(DATA_DIR, 'clientes.csv');
+const SESSION_NAME = process.env.WPP_SESSION || 'bot';
 
 const app = express();
 app.use(express.json({ limit: '5mb' }));
@@ -20,9 +21,7 @@ app.use(express.static(PUBLIC_DIR));
 const COOLDOWN = 10 * 60 * 1000;
 const respondidos = {};
 
-// Só reage a tipos que são mensagens de verdade escritas por alguém. onMessage também
-// dispara pra eventos como chamada perdida, mudança de código de segurança, entrada/saída
-// de grupo, mensagem apagada etc. — que têm um contato real em "from" mas não são conversa.
+// Tipos de mensagem que representam conteúdo real (ignora notificações, chamadas, etc.)
 const TIPOS_MENSAGEM_VALIDOS = new Set([
     'chat', 'image', 'video', 'audio', 'ptt', 'sticker', 'document',
     'location', 'vcard', 'multi_vcard'
@@ -33,10 +32,7 @@ let statusTexto = 'Desconectado';
 let campanhaEmAndamento = false;
 let qrCodeAtual = null;
 
-// O painel consulta /api/dados a cada 3s (1s enquanto conecta); se esse "pulso"
-// sumir por muito tempo, é porque a aba do painel foi fechada (um F5 comum retoma
-// antes disso). Folga generosa porque diálogos como confirm()/alert() no navegador
-// pausam o JavaScript da página enquanto estão abertos, sem a aba ter sido fechada.
+// Encerra tudo se o painel parar de dar sinal de vida (aba fechada)
 let ultimoHeartbeat = Date.now();
 const HEARTBEAT_TIMEOUT = 40000;
 let encerrando = false;
@@ -95,7 +91,6 @@ app.get('/api/dados', async (req, res) => {
         botConectado: conectado,
         statusTexto: statusTexto,
         campanhaRodando: campanhaEmAndamento,
-        // Independente do isConnected(): só mostra QR enquanto de fato aguarda leitura
         qrCode: qrCodeAtual,
         respostaAutomaticaPausada
     });
@@ -108,7 +103,6 @@ app.post('/api/mensagem/salvar', (req, res) => {
     res.json({ mensagem: 'Mensagem atualizada com sucesso!' });
 });
 
-// Inicia APENAS a conexão do WhatsApp e as respostas automáticas
 app.post('/api/bot/iniciar', (req, res) => {
     if (clientInstance) {
         return res.json({ mensagem: 'O WhatsApp já está conectado ou inicializando!' });
@@ -118,13 +112,13 @@ app.post('/api/bot/iniciar', (req, res) => {
     qrCodeAtual = null;
 
     wppconnect.create({
-        session: 'barbearia',
-        folderNameToken: TOKENS_DIR, // Utiliza a pasta tokens em vez de chrome-data
-        headless: true, // QR e status ficam no painel, não precisa de janela/ícone visível
+        session: SESSION_NAME,
+        folderNameToken: TOKENS_DIR,
+        headless: true,
         useChrome: true,
         autoClose: 0,
         waitForLogin: true,
-        logQR: false, // QR não vai pro terminal, é exibido no painel
+        logQR: false,
         catchQR: (base64Qr) => {
             qrCodeAtual = base64Qr;
             statusTexto = 'Aguardando leitura do QR Code...';
@@ -164,8 +158,6 @@ app.post('/api/bot/iniciar', (req, res) => {
             '--disable-setuid-sandbox',
             '--disable-dev-shm-usage',
             '--disable-gpu',
-            // Evita que a página fique "desacelerada" em segundo plano, o que pode
-            // atrapalhar a renovação do QR Code e o keep-alive do WhatsApp Web
             '--disable-backgrounding-occluded-windows',
             '--disable-renderer-backgrounding',
             '--disable-background-timer-throttling'
@@ -240,8 +232,7 @@ app.get('/api/campanha/progresso', (req, res) => {
     res.json(getProgresso());
 });
 
-// Trava de segurança: se disparar mensagens demais em pouco tempo, algo está errado
-// (ex.: uma brecha de filtro ainda não identificada) — pausa em vez de virar disparo em massa
+// Trava de segurança: pausa a resposta automática se enviar demais em pouco tempo
 const LIMITE_ENVIOS = 5;
 const JANELA_LIMITE_MS = 60 * 1000;
 let enviosRecentes = [];
@@ -264,34 +255,27 @@ function podeEnviarAutomatico() {
 }
 
 function ativarRespostasAutomaticas(client) {
-    // Momento em que o bot começou a ouvir: usado para ignorar mensagens antigas
-    // que o WhatsApp sincroniza ao conectar (senão o bot "responde" ao histórico inteiro)
     const inicioEscuta = Math.floor(Date.now() / 1000);
 
     client.onMessage(async (message) => {
         if (!message.from || message.fromMe) return;
-
-        // Só reage a mensagens de conteúdo de verdade (texto, mídia...), ignora
-        // notificações, chamadas, eventos de grupo, mensagens apagadas, etc.
         if (!TIPOS_MENSAGEM_VALIDOS.has(message.type)) return;
 
-        // Ignora grupos (isGroupMsg nem sempre é confiável sozinho: também checa o
-        // sufixo do JID e o campo "author", que só existe em mensagens de grupo)
+        // Ignora grupos
         if (message.isGroupMsg) return;
         if (message.from.endsWith('@g.us')) return;
         if (message.author && message.author !== message.from) return;
 
-        // Ignora Status/broadcast do WhatsApp (aparece pra qualquer contato da agenda,
-        // mesmo sem nunca ter havido conversa)
+        // Ignora status/broadcast
         if (message.broadcast) return;
         if (message.from === 'status@broadcast') return;
 
-        // Ignora mensagens do histórico sincronizadas na conexão, só reage a mensagens novas
+        // Ignora histórico sincronizado na conexão
         if (message.isNewMsg === false) return;
         const carimboTempo = typeof message.timestamp === 'number' ? message.timestamp : message.t;
         if (typeof carimboTempo === 'number' && carimboTempo < inicioEscuta) return;
 
-        // Contatos podem chegar como @c.us (número) ou @lid (id vinculado/privacidade)
+        // Contatos podem chegar como @c.us (número) ou @lid (id vinculado)
         if (!message.from.endsWith("@c.us") && !message.from.endsWith("@lid")) return;
 
         const contato = message.from;

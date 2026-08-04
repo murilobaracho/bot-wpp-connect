@@ -204,8 +204,6 @@ async function atualizarProgressoCampanha() {
     }
 }
 
-// Enquanto conecta, consulta bem mais rápido: as mensagens de status (QR lido,
-// sincronizando, quase lá...) mudam rápido e passam despercebidas com 3s de intervalo.
 function agendarProximaConsulta() {
     setTimeout(async () => {
         await carregarDados();
