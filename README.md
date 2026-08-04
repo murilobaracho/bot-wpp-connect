@@ -81,7 +81,7 @@ npm run panel
 ```
 
 No Windows, dê duplo clique em:
-- [scripts/iniciarPainelSilencioso.vbs](scripts/iniciarPainelSilencioso.vbs) — sobe o painel sem abrir nenhuma janela de terminal (uso normal).
+- [scripts/iniciarPainelSilencioso.vbs](scripts/iniciarPainelSilencioso.vbs) — sobe o painel sem abrir nenhuma janela de terminal (uso normal). Na primeira vez, instala as dependências (`npm install`) automaticamente antes de iniciar.
 - [scripts/iniciarPainel.bat](scripts/iniciarPainel.bat) — sobe o painel com o terminal visível, útil para ver logs em caso de erro.
 
 O painel abre automaticamente em `http://localhost:3000`, onde é possível:
